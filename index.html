@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Thread of Fate - Retro 2D Game</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div id="gameContainer">
+        <!-- Game UI -->
+        <div id="gameUI">
+            <div id="lives">Lives: <span id="livesCount">3</span></div>
+            <div id="level">Level: <span id="levelCount">1</span></div>
+            <div id="mobileControls" class="mobile-only">
+                <div id="dpad">
+                    <button id="up" class="dpad-btn">↑</button>
+                    <button id="left" class="dpad-btn">←</button>
+                    <button id="down" class="dpad-btn">↓</button>
+                    <button id="right" class="dpad-btn">→</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game Canvas -->
+        <canvas id="gameCanvas"></canvas>
+
+        <!-- Game Messages -->
+        <div id="gameMessage" class="hidden">
+            <div id="messageText"></div>
+            <div id="messageInstructions"></div>
+        </div>
+
+        <!-- Loading Screen -->
+        <div id="loadingScreen">
+            <div class="loading-content">
+                <h1>Thread of Fate</h1>
+                <div class="loading-bar">
+                    <div id="loadingProgress"></div>
+                </div>
+                <p>Loading assets...</p>
+            </div>
+        </div>
+
+        <!-- Audio Toggle -->
+        <button id="audioToggle" title="Toggle Sound">♪</button>
+    </div>
+
+    <!-- Game Scripts -->
+    <script src="utils.js"></script>
+    <script src="audio.js"></script>
+    <script src="thread.js"></script>
+    <script src="player.js"></script>
+    <script src="levels.js"></script>
+    <script src="game.js"></script>
+
+    <script>
+        // Initialize game when page loads
+        window.addEventListener('load', () => {
+            const game = new Game();
+            game.init();
+        });
+    </script>
+</body>
+</html>

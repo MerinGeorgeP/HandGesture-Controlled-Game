@@ -1,0 +1,2482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Thread of Fate - Retro 2D Game</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+/* Import retro font */
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+/* Reset and base styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Press Start 2P', monospace;
+    background: #000;
+    color: #00ff00;
+    overflow: hidden;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+}
+
+#gameContainer {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(45deg, #000 0%, #111 50%, #000 100%);
+}
+
+/* Game Canvas */
+#gameCanvas {
+    border: 2px solid #00ff00;
+    box-shadow: 0 0 20px #00ff00;
+    background: #000;
+    image-rendering: pixelated;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: crisp-edges;
+}
+
+/* Game UI */
+#gameUI {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    z-index: 10;
+    font-size: 12px;
+    color: #00ff00;
+    text-shadow: 0 0 5px #00ff00;
+}
+
+#gameUI > div {
+    margin-bottom: 10px;
+}
+
+/* Mobile Controls */
+.mobile-only {
+    display: none;
+}
+
+#mobileControls {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    z-index: 10;
+}
+
+#dpad {
+    position: relative;
+    width: 120px;
+    height: 120px;
+}
+
+.dpad-btn {
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    background: rgba(0, 255, 0, 0.2);
+    border: 2px solid #00ff00;
+    color: #00ff00;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 16px;
+    cursor: pointer;
+    user-select: none;
+    border-radius: 4px;
+    transition: all 0.1s;
+    text-shadow: 0 0 5px #00ff00;
+    box-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
+}
+
+.dpad-btn:active {
+    background: rgba(0, 255, 0, 0.5);
+    transform: scale(0.95);
+}
+
+#up {
+    top: 0;
+    left: 40px;
+}
+
+#left {
+    top: 40px;
+    left: 0;
+}
+
+#right {
+    top: 40px;
+    right: 0;
+}
+
+#down {
+    bottom: 0;
+    left: 40px;
+}
+
+/* Game Messages */
+#gameMessage {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.9);
+    border: 3px solid #00ff00;
+    padding: 30px;
+    text-align: center;
+    z-index: 20;
+    box-shadow: 0 0 30px #00ff00;
+    max-width: 80%;
+}
+
+#messageText {
+    font-size: 16px;
+    margin-bottom: 20px;
+    color: #ff0000;
+    text-shadow: 0 0 10px #ff0000;
+}
+
+#messageInstructions {
+    font-size: 10px;
+    color: #00ff00;
+    text-shadow: 0 0 5px #00ff00;
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* Loading Screen */
+#loadingScreen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+}
+
+.loading-content {
+    text-align: center;
+    color: #00ff00;
+}
+
+.loading-content h1 {
+    font-size: 24px;
+    margin-bottom: 40px;
+    text-shadow: 0 0 20px #00ff00;
+    animation: pulse 2s infinite;
+}
+
+.loading-bar {
+    width: 300px;
+    height: 20px;
+    border: 2px solid #00ff00;
+    margin: 20px auto;
+    background: #000;
+    position: relative;
+    overflow: hidden;
+}
+
+#loadingProgress {
+    height: 100%;
+    background: linear-gradient(90deg, #00ff00, #00aa00);
+    width: 0%;
+    transition: width 0.3s;
+    box-shadow: 0 0 10px #00ff00;
+}
+
+.loading-content p {
+    font-size: 10px;
+    margin-top: 20px;
+    animation: blink 1s infinite;
+}
+
+/* Audio Toggle */
+#audioToggle {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: rgba(0, 255, 0, 0.2);
+    border: 2px solid #00ff00;
+    color: #00ff00;
+    width: 40px;
+    height: 40px;
+    font-size: 16px;
+    cursor: pointer;
+    border-radius: 4px;
+    z-index: 10;
+    transition: all 0.2s;
+}
+
+#audioToggle:hover {
+    background: rgba(0, 255, 0, 0.3);
+    box-shadow: 0 0 10px #00ff00;
+}
+
+#audioToggle.muted {
+    color: #666;
+    border-color: #666;
+    background: rgba(102, 102, 102, 0.2);
+}
+
+/* Animations */
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+@keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+}
+
+@keyframes glow {
+    0%, 100% { 
+        box-shadow: 0 0 5px #00ff00;
+        text-shadow: 0 0 5px #00ff00;
+    }
+    50% { 
+        box-shadow: 0 0 20px #00ff00, 0 0 30px #00ff00;
+        text-shadow: 0 0 10px #00ff00, 0 0 20px #00ff00;
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .mobile-only {
+        display: block !important;
+    }
+    
+    #gameCanvas {
+        max-width: 95vw;
+        max-height: 70vh;
+    }
+    
+    #gameUI {
+        font-size: 10px;
+    }
+    
+    .loading-content h1 {
+        font-size: 18px;
+    }
+    
+    .loading-bar {
+        width: 250px;
+    }
+}
+
+@media (max-height: 600px) {
+    #gameCanvas {
+        max-height: 80vh;
+    }
+    
+    #mobileControls {
+        bottom: 10px;
+        right: 10px;
+    }
+    
+    #dpad {
+        width: 100px;
+        height: 100px;
+    }
+    
+    .dpad-btn {
+        width: 32px;
+        height: 32px;
+        font-size: 12px;
+    }
+    
+    #up, #down {
+        left: 34px;
+    }
+}
+
+/* Game win/lose effects */
+.win-effect {
+    animation: glow 0.5s infinite;
+}
+
+.lose-effect {
+    animation: shake 0.5s;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <!-- Game UI -->
+        <div id="gameUI">
+            <div id="lives">Lives: <span id="livesCount">3</span></div>
+            <div id="level">Level: <span id="levelCount">1</span></div>
+            <div id="mobileControls" class="mobile-only">
+                <div id="dpad">
+                    <button id="up" class="dpad-btn">↑</button>
+                    <button id="left" class="dpad-btn">←</button>
+                    <button id="down" class="dpad-btn">↓</button>
+                    <button id="right" class="dpad-btn">→</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game Canvas -->
+        <canvas id="gameCanvas"></canvas>
+
+        <!-- Game Messages -->
+        <div id="gameMessage" class="hidden">
+            <div id="messageText"></div>
+            <div id="messageInstructions"></div>
+        </div>
+
+        <!-- Loading Screen -->
+        <div id="loadingScreen">
+            <div class="loading-content">
+                <h1>Thread of Fate</h1>
+                <div class="loading-bar">
+                    <div id="loadingProgress"></div>
+                </div>
+                <p>Loading assets...</p>
+            </div>
+        </div>
+
+        <!-- Audio Toggle -->
+        <button id="audioToggle" title="Toggle Sound">♪</button>
+    </div>
+
+    <script>
+// Utility functions for the game
+class Utils {
+    // Check if two rectangles collide (AABB collision detection)
+    static rectCollision(rect1, rect2) {
+        return rect1.x < rect2.x + rect2.width &&
+               rect1.x + rect1.width > rect2.x &&
+               rect1.y < rect2.y + rect2.height &&
+               rect1.y + rect1.height > rect2.y;
+    }
+
+    // Check if a point is inside a rectangle
+    static pointInRect(point, rect) {
+        return point.x >= rect.x &&
+               point.x <= rect.x + rect.width &&
+               point.y >= rect.y &&
+               point.y <= rect.y + rect.height;
+    }
+
+    // Calculate distance between two points
+    static distance(p1, p2) {
+        const dx = p1.x - p2.x;
+        const dy = p1.y - p2.y;
+        return Math.sqrt(dx * dx + dy * dy);
+    }
+
+    // Linear interpolation
+    static lerp(start, end, factor) {
+        return start + (end - start) * factor;
+    }
+
+    // Clamp a value between min and max
+    static clamp(value, min, max) {
+        return Math.min(Math.max(value, min), max);
+    }
+
+    // Get random integer between min and max (inclusive)
+    static randomInt(min, max) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    // Get random float between min and max
+    static randomFloat(min, max) {
+        return Math.random() * (max - min) + min;
+    }
+
+    // Check if device is mobile
+    static isMobile() {
+        return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+               'ontouchstart' in window ||
+               navigator.maxTouchPoints > 0;
+    }
+
+    // Get canvas position relative to viewport
+    static getCanvasPosition(canvas, event) {
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+        
+        let clientX, clientY;
+        
+        if (event.touches && event.touches.length > 0) {
+            clientX = event.touches[0].clientX;
+            clientY = event.touches[0].clientY;
+        } else {
+            clientX = event.clientX;
+            clientY = event.clientY;
+        }
+        
+        return {
+            x: (clientX - rect.left) * scaleX,
+            y: (clientY - rect.top) * scaleY
+        };
+    }
+
+    // Create a glowing effect context
+    static createGlowEffect(ctx, color, blur = 10) {
+        ctx.shadowColor = color;
+        ctx.shadowBlur = blur;
+        ctx.shadowOffsetX = 0;
+        ctx.shadowOffsetY = 0;
+    }
+
+    // Remove glow effect
+    static removeGlowEffect(ctx) {
+        ctx.shadowColor = 'transparent';
+        ctx.shadowBlur = 0;
+        ctx.shadowOffsetX = 0;
+        ctx.shadowOffsetY = 0;
+    }
+
+    // Create pixel-perfect scaling
+    static scaleForPixelArt(ctx) {
+        ctx.imageSmoothingEnabled = false;
+        ctx.webkitImageSmoothingEnabled = false;
+        ctx.mozImageSmoothingEnabled = false;
+        ctx.msImageSmoothingEnabled = false;
+    }
+
+    // Draw pixelated rectangle
+    static drawPixelRect(ctx, x, y, width, height, color) {
+        ctx.fillStyle = color;
+        ctx.fillRect(Math.floor(x), Math.floor(y), Math.floor(width), Math.floor(height));
+    }
+
+    // Draw glowing pixel rectangle
+    static drawGlowingPixelRect(ctx, x, y, width, height, color, glowColor = color) {
+        // Draw glow
+        Utils.createGlowEffect(ctx, glowColor, 5);
+        Utils.drawPixelRect(ctx, x, y, width, height, color);
+        Utils.removeGlowEffect(ctx);
+    }
+
+    // Animate value with easing
+    static easeInOut(t) {
+        return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+    }
+
+    // Check line intersection (for thread collision)
+    static lineIntersection(line1Start, line1End, line2Start, line2End) {
+        const x1 = line1Start.x, y1 = line1Start.y;
+        const x2 = line1End.x, y2 = line1End.y;
+        const x3 = line2Start.x, y3 = line2Start.y;
+        const x4 = line2End.x, y4 = line2End.y;
+
+        const denom = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
+        if (Math.abs(denom) < 0.0001) return false; // Lines are parallel
+
+        const t = ((x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)) / denom;
+        const u = -((x1 - x2) * (y1 - y3) - (y1 - y2) * (x1 - x3)) / denom;
+
+        return t >= 0 && t <= 1 && u >= 0 && u <= 1;
+    }
+
+    // Create gradient for retro effects
+    static createRetroGradient(ctx, x1, y1, x2, y2, colors) {
+        const gradient = ctx.createLinearGradient(x1, y1, x2, y2);
+        for (let i = 0; i < colors.length; i++) {
+            gradient.addColorStop(i / (colors.length - 1), colors[i]);
+        }
+        return gradient;
+    }
+
+    // Format time for display
+    static formatTime(seconds) {
+        const mins = Math.floor(seconds / 60);
+        const secs = Math.floor(seconds % 60);
+        return `${mins}:${secs.toString().padStart(2, '0')}`;
+    }
+
+    // Vibrate device if supported (for mobile feedback)
+    static vibrate(duration = 100) {
+        if (navigator.vibrate) {
+            navigator.vibrate(duration);
+        }
+    }
+}
+
+// Audio management for Thread of Fate game
+class AudioManager {
+    constructor() {
+        this.audioContext = null;
+        this.sounds = {};
+        this.musicGain = null;
+        this.sfxGain = null;
+        this.isMuted = false;
+        this.musicVolume = 0.3;
+        this.sfxVolume = 0.5;
+        this.currentMusic = null;
+    }
+
+    // Initialize audio context and gain nodes
+    async init() {
+        try {
+            // Create audio context
+            this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            
+            // Create gain nodes for volume control
+            this.musicGain = this.audioContext.createGain();
+            this.sfxGain = this.audioContext.createGain();
+            
+            this.musicGain.connect(this.audioContext.destination);
+            this.sfxGain.connect(this.audioContext.destination);
+            
+            this.musicGain.gain.value = this.musicVolume;
+            this.sfxGain.gain.value = this.sfxVolume;
+            
+            // Generate retro sound effects
+            this.generateSounds();
+            
+            console.log('Audio system initialized');
+        } catch (error) {
+            console.warn('Audio initialization failed:', error);
+        }
+    }
+
+    // Generate retro-style sound effects using Web Audio API
+    generateSounds() {
+        if (!this.audioContext) return;
+
+        // Movement sound (short beep)
+        this.sounds.move = this.createTone(200, 0.05, 'square');
+        
+        // Thread stretch sound (rising tone)
+        this.sounds.threadStretch = this.createTone(150, 0.1, 'sawtooth', true);
+        
+        // Thread break sound (harsh noise)
+        this.sounds.threadBreak = this.createNoise(0.3, 0.2);
+        
+        // Collect/win sound (ascending notes)
+        this.sounds.win = this.createWinSound();
+        
+        // Level complete sound
+        this.sounds.levelComplete = this.createLevelCompleteSound();
+        
+        // Enemy hit sound
+        this.sounds.enemyHit = this.createTone(100, 0.2, 'triangle');
+        
+        // Button press sound
+        this.sounds.button = this.createTone(300, 0.05, 'square');
+    }
+
+    // Create a simple tone
+    createTone(frequency, duration, waveType = 'sine', rising = false) {
+        return () => {
+            if (!this.audioContext || this.isMuted) return;
+            
+            const oscillator = this.audioContext.createOscillator();
+            const gainNode = this.audioContext.createGain();
+            
+            oscillator.type = waveType;
+            oscillator.frequency.setValueAtTime(frequency, this.audioContext.currentTime);
+            
+            if (rising) {
+                oscillator.frequency.exponentialRampToValueAtTime(
+                    frequency * 2, 
+                    this.audioContext.currentTime + duration
+                );
+            }
+            
+            gainNode.gain.setValueAtTime(0, this.audioContext.currentTime);
+            gainNode.gain.linearRampToValueAtTime(0.1, this.audioContext.currentTime + 0.01);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, this.audioContext.currentTime + duration);
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(this.sfxGain);
+            
+            oscillator.start(this.audioContext.currentTime);
+            oscillator.stop(this.audioContext.currentTime + duration);
+        };
+    }
+
+    // Create noise for harsh sound effects
+    createNoise(volume, duration) {
+        return () => {
+            if (!this.audioContext || this.isMuted) return;
+            
+            const bufferSize = this.audioContext.sampleRate * duration;
+            const buffer = this.audioContext.createBuffer(1, bufferSize, this.audioContext.sampleRate);
+            const data = buffer.getChannelData(0);
+            
+            // Generate white noise
+            for (let i = 0; i < bufferSize; i++) {
+                data[i] = (Math.random() * 2 - 1) * volume;
+            }
+            
+            const source = this.audioContext.createBufferSource();
+            const gainNode = this.audioContext.createGain();
+            
+            source.buffer = buffer;
+            gainNode.gain.setValueAtTime(volume, this.audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, this.audioContext.currentTime + duration);
+            
+            source.connect(gainNode);
+            gainNode.connect(this.sfxGain);
+            
+            source.start(this.audioContext.currentTime);
+        };
+    }
+
+    // Create win sound (ascending notes)
+    createWinSound() {
+        return () => {
+            if (!this.audioContext || this.isMuted) return;
+            
+            const notes = [262, 330, 392, 523]; // C4, E4, G4, C5
+            const noteDuration = 0.15;
+            
+            notes.forEach((frequency, index) => {
+                setTimeout(() => {
+                    const oscillator = this.audioContext.createOscillator();
+                    const gainNode = this.audioContext.createGain();
+                    
+                    oscillator.type = 'square';
+                    oscillator.frequency.setValueAtTime(frequency, this.audioContext.currentTime);
+                    
+                    gainNode.gain.setValueAtTime(0, this.audioContext.currentTime);
+                    gainNode.gain.linearRampToValueAtTime(0.1, this.audioContext.currentTime + 0.01);
+                    gainNode.gain.exponentialRampToValueAtTime(0.001, this.audioContext.currentTime + noteDuration);
+                    
+                    oscillator.connect(gainNode);
+                    gainNode.connect(this.sfxGain);
+                    
+                    oscillator.start(this.audioContext.currentTime);
+                    oscillator.stop(this.audioContext.currentTime + noteDuration);
+                }, index * 100);
+            });
+        };
+    }
+
+    // Create level complete sound
+    createLevelCompleteSound() {
+        return () => {
+            if (!this.audioContext || this.isMuted) return;
+            
+            // Play a fanfare-like sequence
+            const sequence = [
+                {freq: 392, start: 0, duration: 0.2},
+                {freq: 523, start: 0.2, duration: 0.2},
+                {freq: 659, start: 0.4, duration: 0.2},
+                {freq: 784, start: 0.6, duration: 0.4}
+            ];
+            
+            sequence.forEach(note => {
+                setTimeout(() => {
+                    const oscillator = this.audioContext.createOscillator();
+                    const gainNode = this.audioContext.createGain();
+                    
+                    oscillator.type = 'square';
+                    oscillator.frequency.setValueAtTime(note.freq, this.audioContext.currentTime);
+                    
+                    gainNode.gain.setValueAtTime(0, this.audioContext.currentTime);
+                    gainNode.gain.linearRampToValueAtTime(0.15, this.audioContext.currentTime + 0.01);
+                    gainNode.gain.exponentialRampToValueAtTime(0.001, this.audioContext.currentTime + note.duration);
+                    
+                    oscillator.connect(gainNode);
+                    gainNode.connect(this.sfxGain);
+                    
+                    oscillator.start(this.audioContext.currentTime);
+                    oscillator.stop(this.audioContext.currentTime + note.duration);
+                }, note.start * 1000);
+            });
+        };
+    }
+
+    // Play a sound effect
+    playSound(soundName) {
+        if (this.sounds[soundName] && !this.isMuted) {
+            try {
+                this.sounds[soundName]();
+            } catch (error) {
+                console.warn(`Failed to play sound ${soundName}:`, error);
+            }
+        }
+    }
+
+    // Resume audio context (required for mobile browsers)
+    async resumeAudioContext() {
+        if (this.audioContext && this.audioContext.state === 'suspended') {
+            try {
+                await this.audioContext.resume();
+                console.log('Audio context resumed');
+            } catch (error) {
+                console.warn('Failed to resume audio context:', error);
+            }
+        }
+    }
+
+    // Toggle mute state
+    toggleMute() {
+        this.isMuted = !this.isMuted;
+        
+        if (this.musicGain && this.sfxGain) {
+            const musicVolume = this.isMuted ? 0 : this.musicVolume;
+            const sfxVolume = this.isMuted ? 0 : this.sfxVolume;
+            
+            this.musicGain.gain.setValueAtTime(musicVolume, this.audioContext.currentTime);
+            this.sfxGain.gain.setValueAtTime(sfxVolume, this.audioContext.currentTime);
+        }
+        
+        return this.isMuted;
+    }
+
+    // Set volume levels
+    setVolume(musicVol, sfxVol) {
+        this.musicVolume = Utils.clamp(musicVol, 0, 1);
+        this.sfxVolume = Utils.clamp(sfxVol, 0, 1);
+        
+        if (this.musicGain && this.sfxGain && !this.isMuted) {
+            this.musicGain.gain.setValueAtTime(this.musicVolume, this.audioContext.currentTime);
+            this.sfxGain.gain.setValueAtTime(this.sfxVolume, this.audioContext.currentTime);
+        }
+    }
+
+    // Start ambient background tone
+    startAmbientMusic() {
+        if (!this.audioContext || this.isMuted || this.currentMusic) return;
+        
+        // Create a subtle ambient drone
+        const oscillator = this.audioContext.createOscillator();
+        const gainNode = this.audioContext.createGain();
+        const filter = this.audioContext.createBiquadFilter();
+        
+        oscillator.type = 'sine';
+        oscillator.frequency.setValueAtTime(55, this.audioContext.currentTime); // Low A
+        
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(200, this.audioContext.currentTime);
+        
+        gainNode.gain.setValueAtTime(0, this.audioContext.currentTime);
+        gainNode.gain.linearRampToValueAtTime(0.05, this.audioContext.currentTime + 2);
+        
+        oscillator.connect(filter);
+        filter.connect(gainNode);
+        gainNode.connect(this.musicGain);
+        
+        oscillator.start(this.audioContext.currentTime);
+        
+        this.currentMusic = {
+            oscillator,
+            gainNode
+        };
+    }
+
+    // Stop ambient music
+    stopAmbientMusic() {
+        if (this.currentMusic) {
+            this.currentMusic.gainNode.gain.exponentialRampToValueAtTime(
+                0.001, 
+                this.audioContext.currentTime + 1
+            );
+            this.currentMusic.oscillator.stop(this.audioContext.currentTime + 1);
+            this.currentMusic = null;
+        }
+    }
+
+    // Cleanup audio resources
+    cleanup() {
+        this.stopAmbientMusic();
+        if (this.audioContext) {
+            this.audioContext.close();
+        }
+    }
+}
+
+// Thread system for Thread of Fate game
+class Thread {
+    constructor(startX, startY) {
+        this.startPoint = { x: startX, y: startY };
+        this.points = [{ x: startX, y: startY }];
+        this.maxPoints = 150; // Limit thread length for performance
+        this.segmentLength = 8; // Distance between thread points
+        this.isBroken = false;
+        this.glowIntensity = 1.0;
+        this.animationTime = 0;
+        this.threadColor = '#00ff00';
+        this.glowColor = '#88ff88';
+        this.brokenColor = '#ff0000';
+        this.thickness = 2;
+    }
+
+    // Add a new point to the thread
+    addPoint(x, y) {
+        if (this.isBroken) return;
+
+        const lastPoint = this.points[this.points.length - 1];
+        const distance = Utils.distance({ x, y }, lastPoint);
+
+        // Only add point if it's far enough from the last one
+        if (distance >= this.segmentLength) {
+            this.points.push({ x, y });
+
+            // Remove old points to maintain performance
+            if (this.points.length > this.maxPoints) {
+                this.points.shift();
+            }
+        }
+    }
+
+    // Update thread animation
+    update(deltaTime) {
+        this.animationTime += deltaTime * 2;
+        
+        // Animate glow intensity
+        this.glowIntensity = 0.7 + Math.sin(this.animationTime) * 0.3;
+        
+        // If thread is broken, fade it out
+        if (this.isBroken) {
+            this.glowIntensity = Math.max(0, this.glowIntensity - deltaTime * 2);
+        }
+    }
+
+    // Check collision with obstacles
+    checkCollisions(obstacles) {
+        if (this.isBroken || this.points.length < 2) return false;
+
+        // Check each thread segment against obstacles
+        for (let i = 0; i < this.points.length - 1; i++) {
+            const segmentStart = this.points[i];
+            const segmentEnd = this.points[i + 1];
+
+            for (const obstacle of obstacles) {
+                if (this.checkSegmentObstacleCollision(segmentStart, segmentEnd, obstacle)) {
+                    this.breakThread();
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    // Check if a thread segment collides with an obstacle
+    checkSegmentObstacleCollision(segmentStart, segmentEnd, obstacle) {
+        // Get obstacle bounds
+        const bounds = {
+            left: obstacle.x,
+            right: obstacle.x + obstacle.width,
+            top: obstacle.y,
+            bottom: obstacle.y + obstacle.height
+        };
+
+        // Check intersection with all four sides of the obstacle
+        const sides = [
+            { start: { x: bounds.left, y: bounds.top }, end: { x: bounds.right, y: bounds.top } },     // Top
+            { start: { x: bounds.right, y: bounds.top }, end: { x: bounds.right, y: bounds.bottom } }, // Right
+            { start: { x: bounds.right, y: bounds.bottom }, end: { x: bounds.left, y: bounds.bottom } }, // Bottom
+            { start: { x: bounds.left, y: bounds.bottom }, end: { x: bounds.left, y: bounds.top } }     // Left
+        ];
+
+        for (const side of sides) {
+            if (Utils.lineIntersection(segmentStart, segmentEnd, side.start, side.end)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    // Check if thread is tangled (self-intersection)
+    checkTangling() {
+        if (this.isBroken || this.points.length < 4) return false;
+
+        // Check if any thread segment intersects with non-adjacent segments
+        for (let i = 0; i < this.points.length - 3; i++) {
+            for (let j = i + 2; j < this.points.length - 1; j++) {
+                // Skip adjacent segments
+                if (Math.abs(i - j) <= 1) continue;
+
+                const seg1Start = this.points[i];
+                const seg1End = this.points[i + 1];
+                const seg2Start = this.points[j];
+                const seg2End = this.points[j + 1];
+
+                if (Utils.lineIntersection(seg1Start, seg1End, seg2Start, seg2End)) {
+                    this.breakThread();
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    // Break the thread
+    breakThread() {
+        if (!this.isBroken) {
+            this.isBroken = true;
+            this.threadColor = this.brokenColor;
+            this.glowColor = '#ff8888';
+        }
+    }
+
+    // Reset the thread
+    reset(startX, startY) {
+        this.startPoint = { x: startX, y: startY };
+        this.points = [{ x: startX, y: startY }];
+        this.isBroken = false;
+        this.glowIntensity = 1.0;
+        this.animationTime = 0;
+        this.threadColor = '#00ff00';
+        this.glowColor = '#88ff88';
+    }
+
+    // Get thread length
+    getLength() {
+        let length = 0;
+        for (let i = 0; i < this.points.length - 1; i++) {
+            length += Utils.distance(this.points[i], this.points[i + 1]);
+        }
+        return length;
+    }
+
+    // Check if thread is too stretched (optional mechanic)
+    isTooStretched(maxLength = 400) {
+        return this.getLength() > maxLength;
+    }
+
+    // Render the thread
+    render(ctx) {
+        if (this.points.length < 2) return;
+
+        ctx.save();
+
+        // Set line properties
+        ctx.lineWidth = this.thickness;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+
+        // Draw glow effect
+        if (this.glowIntensity > 0) {
+            Utils.createGlowEffect(ctx, this.glowColor, 8 * this.glowIntensity);
+            this.drawThreadPath(ctx, this.threadColor);
+            Utils.removeGlowEffect(ctx);
+        }
+
+        // Draw main thread
+        this.drawThreadPath(ctx, this.threadColor);
+
+        // Draw connection to start point (anchor)
+        this.drawAnchor(ctx);
+
+        ctx.restore();
+    }
+
+    // Draw the thread path
+    drawThreadPath(ctx, color) {
+        ctx.strokeStyle = color;
+        ctx.globalAlpha = this.glowIntensity;
+
+        ctx.beginPath();
+        ctx.moveTo(this.points[0].x, this.points[0].y);
+
+        // Draw smooth curves between points
+        for (let i = 1; i < this.points.length; i++) {
+            if (i === this.points.length - 1) {
+                // Last point - draw straight line
+                ctx.lineTo(this.points[i].x, this.points[i].y);
+            } else {
+                // Interpolate for smooth curves
+                const current = this.points[i];
+                const next = this.points[i + 1];
+                const midX = (current.x + next.x) / 2;
+                const midY = (current.y + next.y) / 2;
+                
+                ctx.quadraticCurveTo(current.x, current.y, midX, midY);
+            }
+        }
+
+        ctx.stroke();
+        ctx.globalAlpha = 1.0;
+    }
+
+    // Draw the anchor point
+    drawAnchor(ctx) {
+        const anchorSize = 4;
+        const pulseSize = 2 + Math.sin(this.animationTime * 3) * 1;
+
+        // Draw anchor glow
+        Utils.createGlowEffect(ctx, this.threadColor, 10);
+        ctx.fillStyle = this.threadColor;
+        ctx.beginPath();
+        ctx.arc(this.startPoint.x, this.startPoint.y, anchorSize + pulseSize, 0, Math.PI * 2);
+        ctx.fill();
+        Utils.removeGlowEffect(ctx);
+
+        // Draw anchor core
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.arc(this.startPoint.x, this.startPoint.y, anchorSize - 1, 0, Math.PI * 2);
+        ctx.fill();
+    }
+
+    // Debug render (for development)
+    renderDebug(ctx) {
+        if (this.points.length < 2) return;
+
+        ctx.save();
+        ctx.strokeStyle = 'yellow';
+        ctx.lineWidth = 1;
+        ctx.globalAlpha = 0.5;
+
+        // Draw debug lines
+        ctx.beginPath();
+        for (let i = 0; i < this.points.length - 1; i++) {
+            ctx.moveTo(this.points[i].x, this.points[i].y);
+            ctx.lineTo(this.points[i + 1].x, this.points[i + 1].y);
+        }
+        ctx.stroke();
+
+        // Draw debug points
+        ctx.fillStyle = 'red';
+        for (const point of this.points) {
+            ctx.beginPath();
+            ctx.arc(point.x, point.y, 2, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        ctx.restore();
+    }
+}
+
+// Player class for Thread of Fate game
+class Player {
+    constructor(x, y) {
+        this.x = x;
+        this.y = y;
+        this.width = 12;
+        this.height = 12;
+        this.speed = 120; // pixels per second
+        this.color = '#00ffff';
+        this.glowColor = '#88ffff';
+        
+        // Animation properties
+        this.animationTime = 0;
+        this.bobOffset = 0;
+        this.isMoving = false;
+        this.lastDirection = { x: 0, y: 0 };
+        
+        // Visual effects
+        this.trailPoints = [];
+        this.maxTrailPoints = 8;
+        this.pixelSize = 2;
+        
+        // Input state
+        this.inputState = {
+            up: false,
+            down: false,
+            left: false,
+            right: false
+        };
+        
+        // Movement smoothing
+        this.velocity = { x: 0, y: 0 };
+        this.acceleration = 800; // pixels per second squared
+        this.friction = 0.85;
+    }
+
+    // Update player position and animation
+    update(deltaTime, boundaries) {
+        this.animationTime += deltaTime;
+        
+        // Calculate movement direction
+        const direction = { x: 0, y: 0 };
+        
+        if (this.inputState.left) direction.x -= 1;
+        if (this.inputState.right) direction.x += 1;
+        if (this.inputState.up) direction.y -= 1;
+        if (this.inputState.down) direction.y += 1;
+        
+        // Normalize diagonal movement
+        if (direction.x !== 0 && direction.y !== 0) {
+            const length = Math.sqrt(direction.x * direction.x + direction.y * direction.y);
+            direction.x /= length;
+            direction.y /= length;
+        }
+        
+        // Apply acceleration
+        if (direction.x !== 0 || direction.y !== 0) {
+            this.velocity.x += direction.x * this.acceleration * deltaTime;
+            this.velocity.y += direction.y * this.acceleration * deltaTime;
+            this.isMoving = true;
+            this.lastDirection = { ...direction };
+        } else {
+            this.isMoving = false;
+        }
+        
+        // Apply friction
+        this.velocity.x *= this.friction;
+        this.velocity.y *= this.friction;
+        
+        // Limit velocity to max speed
+        const speed = Math.sqrt(this.velocity.x * this.velocity.x + this.velocity.y * this.velocity.y);
+        if (speed > this.speed) {
+            this.velocity.x = (this.velocity.x / speed) * this.speed;
+            this.velocity.y = (this.velocity.y / speed) * this.speed;
+        }
+        
+        // Store old position for collision checking
+        const oldX = this.x;
+        const oldY = this.y;
+        
+        // Update position
+        this.x += this.velocity.x * deltaTime;
+        this.y += this.velocity.y * deltaTime;
+        
+        // Check boundaries and revert if out of bounds
+        if (this.x < boundaries.left || 
+            this.x + this.width > boundaries.right ||
+            this.y < boundaries.top || 
+            this.y + this.height > boundaries.bottom) {
+            
+            this.x = oldX;
+            this.y = oldY;
+            this.velocity.x = 0;
+            this.velocity.y = 0;
+        }
+        
+        // Update bob animation
+        if (this.isMoving) {
+            this.bobOffset = Math.sin(this.animationTime * 12) * 1;
+        } else {
+            this.bobOffset = Math.sin(this.animationTime * 4) * 0.5;
+        }
+        
+        // Update trail points
+        this.updateTrail();
+        
+        // Stop velocity if very small (to prevent jitter)
+        if (Math.abs(this.velocity.x) < 1) this.velocity.x = 0;
+        if (Math.abs(this.velocity.y) < 1) this.velocity.y = 0;
+    }
+
+    // Update trail effect
+    updateTrail() {
+        if (this.isMoving) {
+            this.trailPoints.push({
+                x: this.x + this.width / 2,
+                y: this.y + this.height / 2,
+                life: 1.0
+            });
+            
+            if (this.trailPoints.length > this.maxTrailPoints) {
+                this.trailPoints.shift();
+            }
+        }
+        
+        // Fade trail points
+        for (let i = 0; i < this.trailPoints.length; i++) {
+            this.trailPoints[i].life -= 0.03;
+            if (this.trailPoints[i].life <= 0) {
+                this.trailPoints.splice(i, 1);
+                i--;
+            }
+        }
+    }
+
+    // Check collision with obstacles
+    checkCollision(obstacles) {
+        const playerRect = {
+            x: this.x,
+            y: this.y,
+            width: this.width,
+            height: this.height
+        };
+        
+        for (const obstacle of obstacles) {
+            if (Utils.rectCollision(playerRect, obstacle)) {
+                return obstacle;
+            }
+        }
+        
+        return null;
+    }
+
+    // Handle wall collision
+    handleWallCollision(walls) {
+        const playerRect = {
+            x: this.x,
+            y: this.y,
+            width: this.width,
+            height: this.height
+        };
+        
+        for (const wall of walls) {
+            if (Utils.rectCollision(playerRect, wall)) {
+                // Calculate overlap
+                const overlapX = Math.min(playerRect.x + playerRect.width - wall.x, 
+                                        wall.x + wall.width - playerRect.x);
+                const overlapY = Math.min(playerRect.y + playerRect.height - wall.y, 
+                                        wall.y + wall.height - playerRect.y);
+                
+                // Push out of wall based on smallest overlap
+                if (overlapX < overlapY) {
+                    // Horizontal collision
+                    if (playerRect.x < wall.x) {
+                        this.x = wall.x - this.width;
+                    } else {
+                        this.x = wall.x + wall.width;
+                    }
+                    this.velocity.x = 0;
+                } else {
+                    // Vertical collision
+                    if (playerRect.y < wall.y) {
+                        this.y = wall.y - this.height;
+                    } else {
+                        this.y = wall.y + wall.height;
+                    }
+                    this.velocity.y = 0;
+                }
+            }
+        }
+    }
+
+    // Set input state
+    setInput(direction, pressed) {
+        if (this.inputState.hasOwnProperty(direction)) {
+            this.inputState[direction] = pressed;
+        }
+    }
+
+    // Get center position
+    getCenter() {
+        return {
+            x: this.x + this.width / 2,
+            y: this.y + this.height / 2
+        };
+    }
+
+    // Get bounds for collision detection
+    getBounds() {
+        return {
+            x: this.x,
+            y: this.y,
+            width: this.width,
+            height: this.height
+        };
+    }
+
+    // Reset player to starting position
+    reset(x, y) {
+        this.x = x;
+        this.y = y;
+        this.velocity = { x: 0, y: 0 };
+        this.inputState = {
+            up: false,
+            down: false,
+            left: false,
+            right: false
+        };
+        this.trailPoints = [];
+        this.isMoving = false;
+        this.animationTime = 0;
+    }
+
+    // Render the player
+    render(ctx) {
+        ctx.save();
+        
+        // Render trail
+        this.renderTrail(ctx);
+        
+        // Calculate render position with bob effect
+        const renderX = Math.floor(this.x);
+        const renderY = Math.floor(this.y + this.bobOffset);
+        
+        // Draw player glow
+        Utils.createGlowEffect(ctx, this.glowColor, 6);
+        this.drawPlayerPixelArt(ctx, renderX, renderY, this.color);
+        Utils.removeGlowEffect(ctx);
+        
+        // Draw player body
+        this.drawPlayerPixelArt(ctx, renderX, renderY, this.color);
+        
+        // Draw eyes/details
+        this.drawPlayerDetails(ctx, renderX, renderY);
+        
+        ctx.restore();
+    }
+
+    // Draw player trail
+    renderTrail(ctx) {
+        ctx.save();
+        
+        for (let i = 0; i < this.trailPoints.length; i++) {
+            const point = this.trailPoints[i];
+            const alpha = point.life * 0.6;
+            const size = point.life * 3;
+            
+            ctx.globalAlpha = alpha;
+            Utils.createGlowEffect(ctx, this.glowColor, 4);
+            ctx.fillStyle = this.glowColor;
+            ctx.beginPath();
+            ctx.arc(point.x, point.y, size, 0, Math.PI * 2);
+            ctx.fill();
+            Utils.removeGlowEffect(ctx);
+        }
+        
+        ctx.restore();
+    }
+
+    // Draw player using pixel art style
+    drawPlayerPixelArt(ctx, x, y, color) {
+        const pixels = [
+            [0,0,1,1,1,1,0,0],
+            [0,1,1,1,1,1,1,0],
+            [1,1,1,1,1,1,1,1],
+            [1,1,1,1,1,1,1,1],
+            [1,1,1,1,1,1,1,1],
+            [1,1,1,1,1,1,1,1],
+            [0,1,1,1,1,1,1,0],
+            [0,0,1,1,1,1,0,0]
+        ];
+        
+        ctx.fillStyle = color;
+        
+        for (let row = 0; row < pixels.length; row++) {
+            for (let col = 0; col < pixels[row].length; col++) {
+                if (pixels[row][col]) {
+                    Utils.drawPixelRect(
+                        ctx,
+                        x + col * this.pixelSize - this.pixelSize,
+                        y + row * this.pixelSize - this.pixelSize,
+                        this.pixelSize,
+                        this.pixelSize,
+                        color
+                    );
+                }
+            }
+        }
+    }
+
+    // Draw player details (eyes, etc.)
+    drawPlayerDetails(ctx, x, y) {
+        const eyeColor = '#ffffff';
+        const eyeSize = this.pixelSize;
+        
+        // Left eye
+        Utils.drawPixelRect(
+            ctx,
+            x + this.pixelSize,
+            y + this.pixelSize,
+            eyeSize,
+            eyeSize,
+            eyeColor
+        );
+        
+        // Right eye
+        Utils.drawPixelRect(
+            ctx,
+            x + this.pixelSize * 4,
+            y + this.pixelSize,
+            eyeSize,
+            eyeSize,
+            eyeColor
+        );
+        
+        // Add direction indicator based on movement
+        if (this.isMoving) {
+            const indicatorX = x + this.width / 2 + this.lastDirection.x * 8;
+            const indicatorY = y + this.height / 2 + this.lastDirection.y * 8;
+            
+            ctx.fillStyle = this.glowColor;
+            ctx.globalAlpha = 0.5;
+            ctx.beginPath();
+            ctx.arc(indicatorX, indicatorY, 2, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.globalAlpha = 1.0;
+        }
+    }
+
+    // Debug render
+    renderDebug(ctx) {
+        ctx.save();
+        
+        // Draw bounds
+        ctx.strokeStyle = 'red';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(this.x, this.y, this.width, this.height);
+        
+        // Draw center point
+        const center = this.getCenter();
+        ctx.fillStyle = 'red';
+        ctx.beginPath();
+        ctx.arc(center.x, center.y, 2, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Draw velocity vector
+        ctx.strokeStyle = 'blue';
+        ctx.beginPath();
+        ctx.moveTo(center.x, center.y);
+        ctx.lineTo(center.x + this.velocity.x * 0.1, center.y + this.velocity.y * 0.1);
+        ctx.stroke();
+        
+        ctx.restore();
+    }
+}
+
+// Level definitions and management for Thread of Fate game
+class LevelManager {
+    constructor() {
+        this.currentLevel = 1;
+        this.maxLevel = 3;
+        this.levels = this.createLevels();
+    }
+
+    // Create all level definitions
+    createLevels() {
+        return {
+            1: this.createLevel1(),
+            2: this.createLevel2(),
+            3: this.createLevel3()
+        };
+    }
+
+    // Level 1: Simple introduction to thread mechanics
+    createLevel1() {
+        return {
+            id: 1,
+            name: "First Steps",
+            description: "Learn to move without breaking the thread",
+            playerStart: { x: 50, y: 200 },
+            threadStart: { x: 50, y: 200 },
+            exit: { x: 650, y: 200, width: 20, height: 40 },
+            walls: [
+                // Outer boundaries
+                { x: 0, y: 0, width: 800, height: 20, type: 'wall' },           // Top
+                { x: 0, y: 380, width: 800, height: 20, type: 'wall' },         // Bottom
+                { x: 0, y: 0, width: 20, height: 400, type: 'wall' },           // Left
+                { x: 780, y: 0, width: 20, height: 400, type: 'wall' },         // Right
+                
+                // Simple obstacles
+                { x: 200, y: 150, width: 60, height: 20, type: 'wall' },
+                { x: 350, y: 250, width: 60, height: 20, type: 'wall' },
+                { x: 500, y: 100, width: 20, height: 80, type: 'wall' }
+            ],
+            spikes: [],
+            enemies: [],
+            background: '#001100',
+            tips: [
+                "Use WASD or arrow keys to move",
+                "Keep the green thread from touching walls",
+                "Reach the glowing exit portal"
+            ]
+        };
+    }
+
+    // Level 2: Add spikes and moving enemy
+    createLevel2() {
+        return {
+            id: 2,
+            name: "Dangerous Path",
+            description: "Avoid spikes and the moving enemy",
+            playerStart: { x: 50, y: 300 },
+            threadStart: { x: 50, y: 300 },
+            exit: { x: 650, y: 100, width: 20, height: 40 },
+            walls: [
+                // Outer boundaries
+                { x: 0, y: 0, width: 800, height: 20, type: 'wall' },
+                { x: 0, y: 380, width: 800, height: 20, type: 'wall' },
+                { x: 0, y: 0, width: 20, height: 400, type: 'wall' },
+                { x: 780, y: 0, width: 20, height: 400, type: 'wall' },
+                
+                // Maze-like walls
+                { x: 150, y: 100, width: 20, height: 150, type: 'wall' },
+                { x: 170, y: 100, width: 180, height: 20, type: 'wall' },
+                { x: 330, y: 120, width: 20, height: 100, type: 'wall' },
+                { x: 400, y: 200, width: 150, height: 20, type: 'wall' },
+                { x: 530, y: 220, width: 20, height: 100, type: 'wall' },
+                { x: 200, y: 300, width: 250, height: 20, type: 'wall' }
+            ],
+            spikes: [
+                { x: 250, y: 200, width: 60, height: 12, type: 'spikes' },
+                { x: 400, y: 150, width: 80, height: 12, type: 'spikes' },
+                { x: 450, y: 300, width: 60, height: 12, type: 'spikes' }
+            ],
+            enemies: [
+                {
+                    x: 300, y: 250, width: 16, height: 16, type: 'enemy',
+                    patrol: { start: { x: 280, y: 250 }, end: { x: 450, y: 250 }, speed: 60 },
+                    direction: 1, startTime: 0
+                }
+            ],
+            background: '#110011',
+            tips: [
+                "Avoid the red spikes!",
+                "The purple enemy will break your thread",
+                "Plan your path carefully"
+            ]
+        };
+    }
+
+    // Level 3: Complex puzzle requiring careful movement
+    createLevel3() {
+        return {
+            id: 3,
+            name: "Thread of Fate",
+            description: "Navigate the final maze without tangling",
+            playerStart: { x: 50, y: 350 },
+            threadStart: { x: 50, y: 350 },
+            exit: { x: 700, y: 50, width: 20, height: 40 },
+            walls: [
+                // Outer boundaries
+                { x: 0, y: 0, width: 800, height: 20, type: 'wall' },
+                { x: 0, y: 380, width: 800, height: 20, type: 'wall' },
+                { x: 0, y: 0, width: 20, height: 400, type: 'wall' },
+                { x: 780, y: 0, width: 20, height: 400, type: 'wall' },
+                
+                // Complex maze
+                { x: 100, y: 100, width: 20, height: 200, type: 'wall' },
+                { x: 120, y: 280, width: 100, height: 20, type: 'wall' },
+                { x: 200, y: 180, width: 20, height: 120, type: 'wall' },
+                { x: 220, y: 180, width: 80, height: 20, type: 'wall' },
+                { x: 280, y: 100, width: 20, height: 100, type: 'wall' },
+                { x: 350, y: 150, width: 100, height: 20, type: 'wall' },
+                { x: 430, y: 50, width: 20, height: 120, type: 'wall' },
+                { x: 500, y: 200, width: 150, height: 20, type: 'wall' },
+                { x: 600, y: 100, width: 20, height: 120, type: 'wall' },
+                { x: 550, y: 300, width: 100, height: 20, type: 'wall' },
+                { x: 400, y: 250, width: 20, height: 100, type: 'wall' }
+            ],
+            spikes: [
+                { x: 150, y: 250, width: 40, height: 12, type: 'spikes' },
+                { x: 320, y: 120, width: 50, height: 12, type: 'spikes' },
+                { x: 480, y: 180, width: 60, height: 12, type: 'spikes' },
+                { x: 550, y: 280, width: 40, height: 12, type: 'spikes' }
+            ],
+            enemies: [
+                {
+                    x: 250, y: 220, width: 16, height: 16, type: 'enemy',
+                    patrol: { start: { x: 230, y: 220 }, end: { x: 350, y: 220 }, speed: 40 },
+                    direction: 1, startTime: 0
+                },
+                {
+                    x: 500, y: 120, width: 16, height: 16, type: 'enemy',
+                    patrol: { start: { x: 470, y: 120 }, end: { x: 580, y: 120 }, speed: 50 },
+                    direction: 1, startTime: 1.5
+                }
+            ],
+            background: '#001122',
+            tips: [
+                "This is the final test",
+                "Don't let your thread cross itself",
+                "Multiple enemies patrol different areas",
+                "Victory is within reach!"
+            ]
+        };
+    }
+
+    // Get current level data
+    getCurrentLevel() {
+        return this.levels[this.currentLevel];
+    }
+
+    // Move to next level
+    nextLevel() {
+        if (this.currentLevel < this.maxLevel) {
+            this.currentLevel++;
+            return true;
+        }
+        return false; // Game completed
+    }
+
+    // Reset to first level
+    reset() {
+        this.currentLevel = 1;
+    }
+
+    // Get level completion status
+    isGameComplete() {
+        return this.currentLevel > this.maxLevel;
+    }
+
+    // Get level progress
+    getProgress() {
+        return {
+            current: this.currentLevel,
+            total: this.maxLevel,
+            percentage: (this.currentLevel / this.maxLevel) * 100
+        };
+    }
+
+    // Update dynamic elements in current level
+    updateLevel(deltaTime) {
+        const level = this.getCurrentLevel();
+        
+        // Update enemies
+        level.enemies.forEach(enemy => {
+            this.updateEnemy(enemy, deltaTime);
+        });
+    }
+
+    // Update enemy movement
+    updateEnemy(enemy, deltaTime) {
+        if (!enemy.patrol) return;
+        
+        // Update enemy timer
+        enemy.startTime += deltaTime;
+        
+        // Calculate patrol movement
+        const { start, end, speed } = enemy.patrol;
+        const distance = Utils.distance(start, end);
+        const travelTime = distance / speed;
+        
+        // Calculate position along patrol path
+        const cycle = (enemy.startTime % (travelTime * 2));
+        let t;
+        
+        if (cycle < travelTime) {
+            // Moving from start to end
+            t = cycle / travelTime;
+            enemy.x = Utils.lerp(start.x, end.x, t);
+            enemy.y = Utils.lerp(start.y, end.y, t);
+            enemy.direction = 1;
+        } else {
+            // Moving from end to start
+            t = (cycle - travelTime) / travelTime;
+            enemy.x = Utils.lerp(end.x, start.x, t);
+            enemy.y = Utils.lerp(end.y, start.y, t);
+            enemy.direction = -1;
+        }
+    }
+
+    // Render level elements
+    renderLevel(ctx, levelData) {
+        ctx.save();
+        
+        // Set background
+        ctx.fillStyle = levelData.background;
+        ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+        
+        // Render walls
+        this.renderWalls(ctx, levelData.walls);
+        
+        // Render spikes
+        this.renderSpikes(ctx, levelData.spikes);
+        
+        // Render enemies
+        this.renderEnemies(ctx, levelData.enemies);
+        
+        // Render exit portal
+        this.renderExit(ctx, levelData.exit);
+        
+        ctx.restore();
+    }
+
+    // Render walls
+    renderWalls(ctx, walls) {
+        walls.forEach(wall => {
+            Utils.createGlowEffect(ctx, '#00ff00', 2);
+            Utils.drawPixelRect(ctx, wall.x, wall.y, wall.width, wall.height, '#008800');
+            Utils.removeGlowEffect(ctx);
+            
+            // Add border effect
+            ctx.strokeStyle = '#00ff00';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(wall.x, wall.y, wall.width, wall.height);
+        });
+    }
+
+    // Render spikes
+    renderSpikes(ctx, spikes) {
+        spikes.forEach(spike => {
+            // Draw spike base
+            Utils.createGlowEffect(ctx, '#ff0000', 3);
+            Utils.drawPixelRect(ctx, spike.x, spike.y, spike.width, spike.height, '#aa0000');
+            Utils.removeGlowEffect(ctx);
+            
+            // Draw spike points
+            ctx.fillStyle = '#ff0000';
+            const spikeCount = Math.floor(spike.width / 8);
+            for (let i = 0; i < spikeCount; i++) {
+                const spikeX = spike.x + i * 8 + 4;
+                const spikeY = spike.y;
+                
+                ctx.beginPath();
+                ctx.moveTo(spikeX - 3, spikeY + spike.height);
+                ctx.lineTo(spikeX, spikeY - 3);
+                ctx.lineTo(spikeX + 3, spikeY + spike.height);
+                ctx.closePath();
+                ctx.fill();
+            }
+        });
+    }
+
+    // Render enemies
+    renderEnemies(ctx, enemies) {
+        enemies.forEach(enemy => {
+            // Draw enemy glow
+            Utils.createGlowEffect(ctx, '#ff00ff', 4);
+            Utils.drawPixelRect(ctx, enemy.x, enemy.y, enemy.width, enemy.height, '#aa00aa');
+            Utils.removeGlowEffect(ctx);
+            
+            // Draw enemy details
+            ctx.fillStyle = '#ff00ff';
+            ctx.fillRect(enemy.x + 2, enemy.y + 2, enemy.width - 4, enemy.height - 4);
+            
+            // Draw eyes
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(enemy.x + 3, enemy.y + 3, 2, 2);
+            ctx.fillRect(enemy.x + enemy.width - 5, enemy.y + 3, 2, 2);
+            
+            // Draw direction indicator
+            if (enemy.direction > 0) {
+                ctx.fillStyle = '#ffff00';
+                ctx.fillRect(enemy.x + enemy.width - 2, enemy.y + enemy.height / 2 - 1, 2, 2);
+            } else {
+                ctx.fillStyle = '#ffff00';
+                ctx.fillRect(enemy.x, enemy.y + enemy.height / 2 - 1, 2, 2);
+            }
+        });
+    }
+
+    // Render exit portal
+    renderExit(ctx, exit) {
+        const time = Date.now() * 0.005;
+        
+        // Draw portal base
+        const gradient = Utils.createRetroGradient(
+            ctx, 
+            exit.x, exit.y, 
+            exit.x + exit.width, exit.y + exit.height,
+            ['#00ffff', '#0088ff', '#0044ff', '#0000ff']
+        );
+        
+        ctx.fillStyle = gradient;
+        ctx.fillRect(exit.x, exit.y, exit.width, exit.height);
+        
+        // Draw pulsing glow
+        const glowSize = 15 + Math.sin(time * 3) * 5;
+        Utils.createGlowEffect(ctx, '#00ffff', glowSize);
+        Utils.drawPixelRect(ctx, exit.x - 2, exit.y - 2, exit.width + 4, exit.height + 4, '#00aaff');
+        Utils.removeGlowEffect(ctx);
+        
+        // Draw portal effects
+        ctx.save();
+        ctx.globalAlpha = 0.7;
+        for (let i = 0; i < 3; i++) {
+            const offset = Math.sin(time * 2 + i) * 3;
+            Utils.drawPixelRect(
+                ctx, 
+                exit.x + offset, 
+                exit.y, 
+                exit.width, 
+                exit.height, 
+                '#88ffff'
+            );
+        }
+        ctx.restore();
+    }
+
+    // Get all collidable objects for current level
+    getObstacles() {
+        const level = this.getCurrentLevel();
+        return [...level.walls, ...level.spikes, ...level.enemies];
+    }
+
+    // Get walls only (for wall collision)
+    getWalls() {
+        const level = this.getCurrentLevel();
+        return level.walls;
+    }
+
+    // Get hazards (spikes and enemies)
+    getHazards() {
+        const level = this.getCurrentLevel();
+        return [...level.spikes, ...level.enemies];
+    }
+}
+
+// Main game class for Thread of Fate
+class Game {
+    constructor() {
+        this.canvas = null;
+        this.ctx = null;
+        this.audioManager = null;
+        this.levelManager = null;
+        this.player = null;
+        this.thread = null;
+        
+        // Game state
+        this.gameState = 'loading'; // loading, playing, gameOver, levelComplete, gameComplete
+        this.lives = 3;
+        this.maxLives = 3;
+        this.isRunning = false;
+        this.lastTime = 0;
+        this.debugMode = false;
+        
+        // Input handling
+        this.keys = {};
+        this.touchControls = {};
+        
+        // UI elements
+        this.ui = {
+            lives: null,
+            level: null,
+            message: null,
+            messageText: null,
+            messageInstructions: null,
+            loadingScreen: null,
+            loadingProgress: null,
+            audioToggle: null
+        };
+        
+        // Game settings
+        this.settings = {
+            canvasWidth: 800,
+            canvasHeight: 400,
+            targetFPS: 60
+        };
+        
+        // Performance tracking
+        this.frameCount = 0;
+        this.fpsDisplay = 0;
+        this.lastFPSUpdate = 0;
+        
+        // Mobile detection
+        this.isMobile = Utils.isMobile();
+        
+        // Loading progress
+        this.loadingProgress = 0;
+        this.totalLoadingSteps = 5;
+    }
+
+    // Initialize the game
+    async init() {
+        try {
+            this.setupCanvas();
+            this.setupUI();
+            this.setupInputHandlers();
+            await this.loadAssets();
+            this.initializeGameObjects();
+            this.setupEventListeners();
+            this.hideLoading();
+            this.startGame();
+        } catch (error) {
+            console.error('Game initialization failed:', error);
+            this.showError('Failed to initialize game. Please refresh and try again.');
+        }
+    }
+
+    // Setup game canvas
+    setupCanvas() {
+        this.canvas = document.getElementById('gameCanvas');
+        if (!this.canvas) {
+            throw new Error('Game canvas element not found');
+        }
+        
+        this.ctx = this.canvas.getContext('2d');
+        if (!this.ctx) {
+            throw new Error('Could not get 2D rendering context');
+        }
+        
+        // Set canvas size
+        this.canvas.width = this.settings.canvasWidth;
+        this.canvas.height = this.settings.canvasHeight;
+        
+        // Configure for pixel art
+        Utils.scaleForPixelArt(this.ctx);
+        
+        // Show mobile controls if needed
+        if (this.isMobile) {
+            const mobileControls = document.getElementById('mobileControls');
+            if (mobileControls) {
+                mobileControls.classList.remove('mobile-only');
+            }
+        }
+        
+        this.updateLoadingProgress();
+        console.log('Canvas setup complete');
+    }
+
+    // Setup UI references
+    setupUI() {
+        this.ui.lives = document.getElementById('livesCount');
+        this.ui.level = document.getElementById('levelCount');
+        this.ui.message = document.getElementById('gameMessage');
+        this.ui.messageText = document.getElementById('messageText');
+        this.ui.messageInstructions = document.getElementById('messageInstructions');
+        this.ui.loadingScreen = document.getElementById('loadingScreen');
+        this.ui.loadingProgress = document.getElementById('loadingProgress');
+        this.ui.audioToggle = document.getElementById('audioToggle');
+        
+        // Check if all required elements exist
+        const requiredElements = ['livesCount', 'levelCount', 'gameMessage', 'messageText', 'messageInstructions', 'loadingScreen', 'loadingProgress', 'audioToggle'];
+        for (const elementId of requiredElements) {
+            if (!document.getElementById(elementId)) {
+                console.error(`Required element not found: ${elementId}`);
+                throw new Error(`Missing required UI element: ${elementId}`);
+            }
+        }
+        
+        this.updateLoadingProgress();
+        console.log('UI setup complete');
+    }
+
+    // Load game assets
+    async loadAssets() {
+        try {
+            // Initialize audio
+            this.audioManager = new AudioManager();
+            await this.audioManager.init();
+            this.updateLoadingProgress();
+            
+            // Initialize level manager
+            this.levelManager = new LevelManager();
+            this.updateLoadingProgress();
+            
+            console.log('Assets loaded successfully');
+        } catch (error) {
+            console.warn('Some assets failed to load:', error);
+        }
+        
+        this.updateLoadingProgress();
+    }
+
+    // Initialize game objects
+    initializeGameObjects() {
+        const level = this.levelManager.getCurrentLevel();
+        
+        // Create player
+        this.player = new Player(level.playerStart.x, level.playerStart.y);
+        
+        // Create thread
+        this.thread = new Thread(level.threadStart.x, level.threadStart.y);
+        
+        // Update UI
+        this.updateUI();
+        
+        this.updateLoadingProgress();
+        console.log('Game objects initialized');
+    }
+
+    // Setup input handlers
+    setupInputHandlers() {
+        // Keyboard input
+        document.addEventListener('keydown', (e) => this.handleKeyDown(e));
+        document.addEventListener('keyup', (e) => this.handleKeyUp(e));
+        
+        // Mobile touch controls
+        if (this.isMobile) {
+            this.setupTouchControls();
+        }
+        
+        // Audio toggle
+        if (this.ui.audioToggle) {
+            this.ui.audioToggle.addEventListener('click', () => {
+                const isMuted = this.audioManager.toggleMute();
+                this.ui.audioToggle.classList.toggle('muted', isMuted);
+                this.audioManager.playSound('button');
+            });
+        }
+        
+        console.log('Input handlers setup complete');
+    }
+
+    // Setup touch controls for mobile
+    setupTouchControls() {
+        const buttons = ['up', 'down', 'left', 'right'];
+        
+        buttons.forEach(direction => {
+            const button = document.getElementById(direction);
+            
+            // Touch start
+            button.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                this.touchControls[direction] = true;
+                this.updatePlayerInput();
+                this.audioManager.resumeAudioContext();
+            });
+            
+            // Touch end
+            button.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                this.touchControls[direction] = false;
+                this.updatePlayerInput();
+            });
+            
+            // Prevent context menu
+            button.addEventListener('contextmenu', (e) => e.preventDefault());
+        });
+    }
+
+    // Setup additional event listeners
+    setupEventListeners() {
+        // Window focus/blur
+        window.addEventListener('focus', () => {
+            if (this.gameState === 'playing') {
+                this.lastTime = performance.now();
+            }
+        });
+        
+        window.addEventListener('blur', () => {
+            // Clear all inputs when window loses focus
+            this.keys = {};
+            this.touchControls = {};
+            this.updatePlayerInput();
+        });
+        
+        // Prevent right-click context menu on canvas
+        this.canvas.addEventListener('contextmenu', (e) => e.preventDefault());
+        
+        // Debug mode toggle
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'F1') {
+                e.preventDefault();
+                this.debugMode = !this.debugMode;
+                console.log('Debug mode:', this.debugMode ? 'ON' : 'OFF');
+            }
+        });
+    }
+
+    // Handle keyboard input
+    handleKeyDown(e) {
+        // Prevent default for game keys
+        if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'KeyW', 'KeyA', 'KeyS', 'KeyD', 'KeyR', 'KeyN', 'Space'].includes(e.code)) {
+            e.preventDefault();
+        }
+        
+        this.keys[e.code] = true;
+        
+        // Handle game state specific inputs
+        if (this.gameState === 'gameOver' && e.code === 'KeyR') {
+            this.restartLevel();
+        } else if (this.gameState === 'levelComplete' && e.code === 'KeyN') {
+            this.nextLevel();
+        } else if (this.gameState === 'gameComplete' && e.code === 'KeyR') {
+            this.restartGame();
+        }
+        
+        // Resume audio context on first user interaction
+        this.audioManager.resumeAudioContext();
+        
+        this.updatePlayerInput();
+    }
+
+    // Handle keyboard release
+    handleKeyUp(e) {
+        this.keys[e.code] = false;
+        this.updatePlayerInput();
+    }
+
+    // Update player input based on current key/touch state
+    updatePlayerInput() {
+        if (!this.player || this.gameState !== 'playing') return;
+        
+        // Keyboard input
+        const up = this.keys['ArrowUp'] || this.keys['KeyW'];
+        const down = this.keys['ArrowDown'] || this.keys['KeyS'];
+        const left = this.keys['ArrowLeft'] || this.keys['KeyA'];
+        const right = this.keys['ArrowRight'] || this.keys['KeyD'];
+        
+        // Touch input
+        const touchUp = this.touchControls['up'];
+        const touchDown = this.touchControls['down'];
+        const touchLeft = this.touchControls['left'];
+        const touchRight = this.touchControls['right'];
+        
+        // Combine inputs
+        this.player.setInput('up', up || touchUp);
+        this.player.setInput('down', down || touchDown);
+        this.player.setInput('left', left || touchLeft);
+        this.player.setInput('right', right || touchRight);
+        
+        // Play movement sound
+        if ((up || down || left || right || touchUp || touchDown || touchLeft || touchRight) && 
+            this.gameState === 'playing') {
+            // Throttle movement sound
+            if (!this.lastMoveSoundTime || Date.now() - this.lastMoveSoundTime > 100) {
+                this.audioManager.playSound('move');
+                this.lastMoveSoundTime = Date.now();
+            }
+        }
+    }
+
+    // Start the game
+    startGame() {
+        this.gameState = 'playing';
+        this.isRunning = true;
+        this.lastTime = performance.now();
+        this.gameLoop();
+        this.audioManager.startAmbientMusic();
+        console.log('Game started');
+    }
+
+    // Main game loop
+    gameLoop(currentTime = performance.now()) {
+        if (!this.isRunning) return;
+        
+        const deltaTime = Math.min((currentTime - this.lastTime) / 1000, 0.1); // Cap delta time
+        this.lastTime = currentTime;
+        
+        // Update FPS counter
+        this.updateFPS(currentTime);
+        
+        // Update game
+        this.update(deltaTime);
+        
+        // Render game
+        this.render();
+        
+        // Continue loop
+        requestAnimationFrame((time) => this.gameLoop(time));
+    }
+
+    // Update game state
+    update(deltaTime) {
+        if (this.gameState !== 'playing') return;
+        
+        // Update level
+        this.levelManager.updateLevel(deltaTime);
+        
+        // Update player
+        const boundaries = {
+            left: 20,
+            right: this.settings.canvasWidth - 20,
+            top: 20,
+            bottom: this.settings.canvasHeight - 20
+        };
+        
+        this.player.update(deltaTime, boundaries);
+        
+        // Handle wall collisions
+        this.player.handleWallCollision(this.levelManager.getWalls());
+        
+        // Update thread
+        this.thread.update(deltaTime);
+        const playerCenter = this.player.getCenter();
+        this.thread.addPoint(playerCenter.x, playerCenter.y);
+        
+        // Check collisions
+        this.checkCollisions();
+        
+        // Check win condition
+        this.checkWinCondition();
+    }
+
+    // Check all collision types
+    checkCollisions() {
+        // Check thread collisions with hazards
+        const hazards = this.levelManager.getHazards();
+        if (this.thread.checkCollisions(hazards)) {
+            this.audioManager.playSound('threadBreak');
+            this.gameOver();
+            return;
+        }
+        
+        // Check thread tangling
+        if (this.thread.checkTangling()) {
+            this.audioManager.playSound('threadBreak');
+            this.gameOver();
+            return;
+        }
+        
+        // Check player collision with hazards
+        const hazardCollision = this.player.checkCollision(hazards);
+        if (hazardCollision) {
+            this.audioManager.playSound('enemyHit');
+            this.gameOver();
+            return;
+        }
+        
+        // Check if thread is too stretched (optional mechanic)
+        if (this.thread.isTooStretched(500)) {
+            this.audioManager.playSound('threadStretch');
+        }
+    }
+
+    // Check win condition
+    checkWinCondition() {
+        const level = this.levelManager.getCurrentLevel();
+        const playerBounds = this.player.getBounds();
+        
+        if (Utils.rectCollision(playerBounds, level.exit)) {
+            this.levelComplete();
+        }
+    }
+
+    // Handle level completion
+    levelComplete() {
+        this.gameState = 'levelComplete';
+        this.audioManager.playSound('levelComplete');
+        
+        if (this.levelManager.nextLevel()) {
+            // More levels available
+            this.showMessage(
+                'Level Complete!',
+                'Press N for Next Level or R to Restart'
+            );
+        } else {
+            // Game completed
+            this.gameComplete();
+        }
+    }
+
+    // Handle game completion
+    gameComplete() {
+        this.gameState = 'gameComplete';
+        this.audioManager.playSound('win');
+        this.audioManager.stopAmbientMusic();
+        
+        this.showMessage(
+            'Congratulations! You\'ve mastered the Thread of Fate!',
+            'Press R to Play Again'
+        );
+        
+        // Add win effect
+        document.body.classList.add('win-effect');
+        setTimeout(() => {
+            document.body.classList.remove('win-effect');
+        }, 2000);
+    }
+
+    // Handle game over
+    gameOver() {
+        this.lives--;
+        this.updateUI();
+        
+        if (this.lives <= 0) {
+            this.gameState = 'gameOver';
+            this.showMessage(
+                'Thread Broken – Game Over',
+                'Press R to Restart'
+            );
+            
+            // Add lose effect
+            document.body.classList.add('lose-effect');
+            setTimeout(() => {
+                document.body.classList.remove('lose-effect');
+            }, 500);
+            
+            // Vibrate on mobile
+            if (this.isMobile) {
+                Utils.vibrate(200);
+            }
+        } else {
+            // Restart level with remaining lives
+            this.restartLevel(false);
+        }
+    }
+
+    // Restart current level
+    restartLevel(resetLives = true) {
+        if (resetLives) {
+            this.lives = this.maxLives;
+        }
+        
+        const level = this.levelManager.getCurrentLevel();
+        this.player.reset(level.playerStart.x, level.playerStart.y);
+        this.thread.reset(level.threadStart.x, level.threadStart.y);
+        
+        this.gameState = 'playing';
+        this.hideMessage();
+        this.updateUI();
+        
+        this.audioManager.playSound('button');
+        this.audioManager.startAmbientMusic();
+    }
+
+    // Go to next level
+    nextLevel() {
+        const level = this.levelManager.getCurrentLevel();
+        this.player.reset(level.playerStart.x, level.playerStart.y);
+        this.thread.reset(level.threadStart.x, level.threadStart.y);
+        
+        this.gameState = 'playing';
+        this.hideMessage();
+        this.updateUI();
+        
+        this.audioManager.playSound('button');
+    }
+
+    // Restart entire game
+    restartGame() {
+        this.levelManager.reset();
+        this.lives = this.maxLives;
+        this.restartLevel();
+        document.body.classList.remove('win-effect');
+    }
+
+    // Render game
+    render() {
+        // Clear canvas
+        this.ctx.fillStyle = '#000000';
+        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+        
+        // Render level
+        const level = this.levelManager.getCurrentLevel();
+        this.levelManager.renderLevel(this.ctx, level);
+        
+        // Render thread
+        this.thread.render(this.ctx);
+        
+        // Render player
+        this.player.render(this.ctx);
+        
+        // Render debug info
+        if (this.debugMode) {
+            this.renderDebug();
+        }
+        
+        // Render FPS
+        this.renderFPS();
+    }
+
+    // Render debug information
+    renderDebug() {
+        this.ctx.save();
+        
+        // Player debug
+        this.player.renderDebug(this.ctx);
+        
+        // Thread debug
+        this.thread.renderDebug(this.ctx);
+        
+        // Level debug info
+        this.ctx.fillStyle = 'yellow';
+        this.ctx.font = '10px monospace';
+        const level = this.levelManager.getCurrentLevel();
+        this.ctx.fillText(`Level: ${level.id} - ${level.name}`, 10, this.canvas.height - 60);
+        this.ctx.fillText(`Player: ${Math.floor(this.player.x)}, ${Math.floor(this.player.y)}`, 10, this.canvas.height - 50);
+        this.ctx.fillText(`Thread Points: ${this.thread.points.length}`, 10, this.canvas.height - 40);
+        this.ctx.fillText(`Thread Length: ${Math.floor(this.thread.getLength())}`, 10, this.canvas.height - 30);
+        this.ctx.fillText(`Game State: ${this.gameState}`, 10, this.canvas.height - 20);
+        this.ctx.fillText(`Lives: ${this.lives}`, 10, this.canvas.height - 10);
+        
+        this.ctx.restore();
+    }
+
+    // Update FPS counter
+    updateFPS(currentTime) {
+        this.frameCount++;
+        
+        if (currentTime - this.lastFPSUpdate >= 1000) {
+            this.fpsDisplay = this.frameCount;
+            this.frameCount = 0;
+            this.lastFPSUpdate = currentTime;
+        }
+    }
+
+    // Render FPS counter
+    renderFPS() {
+        this.ctx.save();
+        this.ctx.fillStyle = '#00ff00';
+        this.ctx.font = '10px monospace';
+        this.ctx.fillText(`FPS: ${this.fpsDisplay}`, this.canvas.width - 60, 15);
+        this.ctx.restore();
+    }
+
+    // Update UI elements
+    updateUI() {
+        if (this.ui.lives) {
+            this.ui.lives.textContent = this.lives;
+        }
+        if (this.ui.level) {
+            this.ui.level.textContent = this.levelManager.currentLevel;
+        }
+    }
+
+    // Show game message
+    showMessage(text, instructions = '') {
+        if (this.ui.messageText) {
+            this.ui.messageText.textContent = text;
+        }
+        if (this.ui.messageInstructions) {
+            this.ui.messageInstructions.textContent = instructions;
+        }
+        if (this.ui.message) {
+            this.ui.message.classList.remove('hidden');
+        }
+    }
+
+    // Hide game message
+    hideMessage() {
+        if (this.ui.message) {
+            this.ui.message.classList.add('hidden');
+        }
+    }
+
+    // Update loading progress
+    updateLoadingProgress() {
+        this.loadingProgress++;
+        const percentage = (this.loadingProgress / this.totalLoadingSteps) * 100;
+        if (this.ui.loadingProgress) {
+            this.ui.loadingProgress.style.width = `${percentage}%`;
+        }
+    }
+
+    // Hide loading screen
+    hideLoading() {
+        setTimeout(() => {
+            if (this.ui.loadingScreen) {
+                this.ui.loadingScreen.style.display = 'none';
+            }
+        }, 500);
+    }
+
+    // Show error message
+    showError(message) {
+        const errorDiv = document.createElement('div');
+        errorDiv.style.cssText = `
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #ff0000;
+            color: #ffffff;
+            padding: 20px;
+            border: 2px solid #ffffff;
+            font-family: 'Press Start 2P', monospace;
+            font-size: 12px;
+            z-index: 1000;
+            text-align: center;
+        `;
+        errorDiv.textContent = message;
+        document.body.appendChild(errorDiv);
+    }
+
+    // Cleanup when game is destroyed
+    destroy() {
+        this.isRunning = false;
+        this.audioManager?.cleanup();
+        
+        // Remove event listeners
+        document.removeEventListener('keydown', this.handleKeyDown);
+        document.removeEventListener('keyup', this.handleKeyUp);
+        
+        console.log('Game destroyed');
+    }
+}
+
+// Initialize game when page loads
+window.addEventListener('load', () => {
+    const game = new Game();
+    game.init();
+});
+    </script>
+</body>
+</html>
