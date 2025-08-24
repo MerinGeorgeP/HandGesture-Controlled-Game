@@ -1,0 +1,49 @@
+Build a lightweight retro 2D browser game called **Thread of Fate** using only HTML, CSS, and JavaScript (Canvas API). 
+The game must be deployable on Vercel with no backend dependencies.
+
+### Concept:
+- Player = small retro pixel character tied to a glowing thread.
+- The thread is always connected to the starting point of the level.
+- As the player moves, the thread follows, creating a glowing trail.
+- If the thread touches spikes, enemies, or gets too tangled, the player loses.
+- Goal: reach the glowing exit portal without breaking the thread.
+
+### Core Mechanics:
+- Movement: Arrow keys or WASD to move the character.
+- Collision: 
+  - Walls block player movement. 
+  - Spikes or enemies break the thread = Game Over.
+- Thread:
+  - Rendered as a glowing retro line following the player's past positions.
+  
+- Win Condition: Reach the exit door while thread remains intact.
+
+### Levels:
+- Level 1: Simple layout, introduces thread mechanic.
+- Level 2: Adds spikes and moving enemy.
+- Level 3: Puzzle-like, requires careful movement to avoid tangling thread.
+
+### Visual Style:
+- Retro pixel art aesthetic (8-bit style).
+- Black background with neon glowing thread.
+- Player = small 8-bit sprite 
+- Exit door = glowing pixel portal 
+- Spikes, enemies, and tiles = pixel art placeholders.
+
+
+### UI:
+- Show "Lives" and "Level" in top corner.
+- On losing, display "Thread Broken – Press R to Retry".
+- On winning, display "You Escaped! Press N for Next Level".
+
+### Requirements:
+- Pure HTML, CSS, JS (Canvas).
+- No backend, no heavy frameworks. Must be deployable on Vercel.
+- Optimized for very low specs (runs smoothly even on low-end laptops).
+- Responsive: works on desktop and mobile (with touch controls for movement).
+- Retro sound effects for movement, thread stretching, and losing.
+
+it should be just html css js no need for external unwanted libraries, keep it simple, clean and server less to be deployed at vercel so no need for backend, also config the vercel config file as well
+i dont want 3d, 2d is enough so no need for three js use canvas itself
+
+
